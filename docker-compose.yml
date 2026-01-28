@@ -1,21 +1,29 @@
 services:
-moltbot-gateway:
-    build: .  # Adicione esta linha para forçar o build no Coolify
+  moltbot-gateway:
+    build: . # Adicione esta linha para forçar o build no Coolify
     image: moltbot:latest
     environment:
       HOME: /home/node
       TERM: xterm-256color
       # Adicione suas chaves aqui ou nas Environment Variables do Coolify
       CLAWDBOT_GATEWAY_TOKEN: ${CLAWDBOT_GATEWAY_TOKEN}
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY} 
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
     volumes:
       - moltbot_config:/home/node/.clawdbot
       - moltbot_workspace:/home/node/clawd
     ports:
       - "18789:18789"
     restart: unless-stopped
-    command: ["node", "dist/index.js", "gateway", "--bind", "0.0.0.0", "--port", "18789"]
-
+    command:
+      [
+        "node",
+        "dist/index.js",
+        "gateway",
+        "--bind",
+        "0.0.0.0",
+        "--port",
+        "18789",
+      ]
   moltbot-cli:
     image: ${CLAWDBOT_IMAGE:-moltbot:local}
     environment:
