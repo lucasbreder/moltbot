@@ -1,19 +1,22 @@
+version: "3.8"
+
 services:
   moltbot-gateway:
-    build: . # Adicione esta linha para forçar o build no Coolify
+    build: .
     image: moltbot:latest
+    container_name: moltbot-app
+    restart: unless-stopped
+    ports:
+      - "18789:18789"
     environment:
       HOME: /home/node
       TERM: xterm-256color
-      # Adicione suas chaves aqui ou nas Environment Variables do Coolify
       CLAWDBOT_GATEWAY_TOKEN: ${CLAWDBOT_GATEWAY_TOKEN}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
     volumes:
-      - moltbot_config:/home/node/.clawdbot
+      - moltbot_data:/home/node/.clawdbot
       - moltbot_workspace:/home/node/clawd
-    ports:
-      - "18789:18789"
-    restart: unless-stopped
     command:
       [
         "node",
@@ -24,19 +27,7 @@ services:
         "--port",
         "18789",
       ]
-  moltbot-cli:
-    image: ${CLAWDBOT_IMAGE:-moltbot:local}
-    environment:
-      HOME: /home/node
-      TERM: xterm-256color
-      BROWSER: echo
-      CLAUDE_AI_SESSION_KEY: ${CLAUDE_AI_SESSION_KEY}
-      CLAUDE_WEB_SESSION_KEY: ${CLAUDE_WEB_SESSION_KEY}
-      CLAUDE_WEB_COOKIE: ${CLAUDE_WEB_COOKIE}
-    volumes:
-      - ${CLAWDBOT_CONFIG_DIR}:/home/node/.moltbot
-      - ${CLAWDBOT_WORKSPACE_DIR}:/home/node/moltbot
-    stdin_open: true
-    tty: true
-    init: true
-    entrypoint: ["node", "dist/index.js"]
+
+volumes:
+  moltbot_data:
+  moltbot_workspace:
