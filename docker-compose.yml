@@ -11,23 +11,22 @@ services:
     environment:
       HOME: /home/node
       TERM: xterm-256color
+      # Definimos o HOST por variável de ambiente para garantir
+      HOST: 0.0.0.0
       CLAWDBOT_GATEWAY_TOKEN: ${CLAWDBOT_GATEWAY_TOKEN}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
     volumes:
-      # Mantendo o volume correto na nova pasta
       - moltbot_data:/home/node/.moltbot
       - moltbot_workspace:/home/node/clawd
-    # MUDANÇA AQUI: Usamos --bind custom e adicionamos --hostname 0.0.0.0
+    # AJUSTE AQUI: Usamos --bind lan e removemos o --hostname
     command:
       [
         "node",
         "dist/index.js",
         "gateway",
         "--bind",
-        "custom",
-        "--hostname",
-        "0.0.0.0",
+        "lan",
         "--port",
         "18789",
         "--allow-unconfigured",
