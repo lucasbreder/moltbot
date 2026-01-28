@@ -5,32 +5,28 @@ services:
     build: .
     image: moltbot:latest
     container_name: moltbot-app
+    # ADICIONE ESTA LINHA:
+    user: root
     restart: unless-stopped
     ports:
       - "18789:18789"
     environment:
       HOME: /home/node
       TERM: xterm-256color
-      # Definimos o HOST por variável de ambiente para garantir
       HOST: 0.0.0.0
       CLAWDBOT_GATEWAY_TOKEN: ${CLAWDBOT_GATEWAY_TOKEN}
+      MOLTBOT_GATEWAY_TOKEN: ${CLAWDBOT_GATEWAY_TOKEN}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
     volumes:
       - moltbot_data:/home/node/.moltbot
       - moltbot_workspace:/home/node/clawd
-    # AJUSTE AQUI: Usamos --bind lan e removemos o --hostname
-    command:
-      [
-        "node",
-        "dist/index.js",
-        "gateway",
-        "--bind",
-        "lan",
-        "--port",
-        "18789",
-        "--allow-unconfigured",
-      ]
+    command: >
+      node dist/index.js gateway
+      --bind lan
+      --port 18789
+      --allow-unconfigured
+      --token "${CLAWDBOT_GATEWAY_TOKEN}"
 
 volumes:
   moltbot_data:
