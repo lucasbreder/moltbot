@@ -11,12 +11,15 @@ services:
     environment:
       HOME: /home/node
       TERM: xterm-256color
+      # Mantenha suas variáveis de ambiente aqui
       CLAWDBOT_GATEWAY_TOKEN: ${CLAWDBOT_GATEWAY_TOKEN}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
     volumes:
-      - moltbot_data:/home/node/.clawdbot
+      # CORREÇÃO 1: Apontando direto para a nova pasta .moltbot
+      - moltbot_data:/home/node/.moltbot
       - moltbot_workspace:/home/node/clawd
+    # CORREÇÃO 2: Adicionada a flag --allow-unconfigured
     command:
       [
         "node",
@@ -26,6 +29,7 @@ services:
         "0.0.0.0",
         "--port",
         "18789",
+        "--allow-unconfigured",
       ]
 
 volumes:
