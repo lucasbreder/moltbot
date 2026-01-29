@@ -5,6 +5,7 @@ services:
     build: .
     image: moltbot:latest
     container_name: moltbot-app
+    # ADICIONE ESTA LINHA:
     user: root
     restart: unless-stopped
     ports:
@@ -26,7 +27,6 @@ services:
       --port 18789
       --allow-unconfigured
       --token "${CLAWDBOT_GATEWAY_TOKEN}"
-      --trusted-proxies "loopback,linklocal,uniquelocal"
 
 volumes:
   moltbot_data:
