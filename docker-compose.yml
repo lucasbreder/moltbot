@@ -5,7 +5,7 @@ services:
     build: .
     image: moltbot:latest
     container_name: moltbot-app
-    user: "1000:1000"
+    user: "root"
     restart: unless-stopped
     cap_drop:
       - ALL
