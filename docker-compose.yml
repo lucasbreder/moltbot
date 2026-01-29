@@ -1,41 +1,18 @@
 version: "3.8"
 
 services:
-  # SERVIÇO 1: O "Consertador" de Permissões
-  # Roda como root por 2 segundos, arruma a casa e desliga.
-  init-permissions:
-    image: busybox
-    container_name: moltbot-init
-    command: sh -c "chown -R 1000:1000 /data /workspace && echo 'Permissões corrigidas!'"
-    user: root
-    volumes:
-      # Mapeamos os mesmos volumes aqui para poder alterá-los
-      - moltbot_data:/data
-      - moltbot_workspace:/workspace
-
-  # SERVIÇO 2: O Moltbot Principal (Seguro)
   moltbot-gateway:
     build: .
     image: moltbot:latest
     container_name: moltbot-app
-    # Roda como usuário limitado (Segurança)
     user: "1000:1000"
     restart: unless-stopped
-
-    # Aguarda o serviço 'init-permissions' terminar com sucesso
-    depends_on:
-      init-permissions:
-        condition: service_completed_successfully
-
-    # Hardening (Blindagem)
     cap_drop:
       - ALL
-
     environment:
       HOME: /home/node
       TERM: xterm-256color
       HOST: 0.0.0.0
-      # Suas variáveis
       CLAWDBOT_GATEWAY_TOKEN: ${CLAWDBOT_GATEWAY_TOKEN}
       MOLTBOT_GATEWAY_TOKEN: ${CLAWDBOT_GATEWAY_TOKEN}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
@@ -44,9 +21,7 @@ services:
     volumes:
       - moltbot_data:/home/node/.moltbot
       - moltbot_workspace:/home/node/clawd
-      - /tmp
 
-    # Script de inicialização + Alias
     command: >
       /bin/sh -c "
       mkdir -p /home/node/bin &&
@@ -54,7 +29,7 @@ services:
       echo 'node /app/dist/index.js \"\$@\"' >> /home/node/bin/moltbot &&
       chmod +x /home/node/bin/moltbot &&
       export PATH=\"/home/node/bin:\$PATH\" &&
-      echo '✅ Moltbot seguro iniciando...' &&
+      echo '✅ Comando moltbot (seguro) instalado em ~/bin!' &&
       exec node dist/index.js gateway --bind lan --port 18789 --allow-unconfigured
       "
 
