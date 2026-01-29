@@ -5,7 +5,6 @@ services:
     build: .
     image: moltbot:latest
     container_name: moltbot-app
-    # ADICIONE ESTA LINHA:
     user: root
     restart: unless-stopped
     ports:
@@ -21,12 +20,15 @@ services:
     volumes:
       - moltbot_data:/home/node/.moltbot
       - moltbot_workspace:/home/node/clawd
+    # TRUQUE AQUI: Criamos o arquivo 'moltbot' e depois iniciamos o servidor
     command: >
-      node dist/index.js gateway
-      --bind lan
-      --port 18789
-      --allow-unconfigured
-      --token "${CLAWDBOT_GATEWAY_TOKEN}"
+      /bin/sh -c "
+      echo '#!/bin/sh' > /usr/bin/moltbot &&
+      echo 'node $(pwd)/dist/index.js \"\$@\"' >> /usr/bin/moltbot &&
+      chmod +x /usr/bin/moltbot &&
+      echo '✅ Comando moltbot instalado!' &&
+      exec node dist/index.js gateway --bind lan --port 18789 --allow-unconfigured --token '${CLAWDBOT_GATEWAY_TOKEN}'
+      "
 
 volumes:
   moltbot_data:
