@@ -1,34 +1,41 @@
 version: "3.8"
 
 services:
+  # SERVIÇO 1: O "Consertador" de Permissões
+  # Roda como root por 2 segundos, arruma a casa e desliga.
+  init-permissions:
+    image: busybox
+    container_name: moltbot-init
+    command: sh -c "chown -R 1000:1000 /data /workspace && echo 'Permissões corrigidas!'"
+    user: root
+    volumes:
+      # Mapeamos os mesmos volumes aqui para poder alterá-los
+      - moltbot_data:/data
+      - moltbot_workspace:/workspace
+
+  # SERVIÇO 2: O Moltbot Principal (Seguro)
   moltbot-gateway:
     build: .
     image: moltbot:latest
     container_name: moltbot-app
-    # 1. SEGURANÇA: Voltamos para o usuário padrão (node)
+    # Roda como usuário limitado (Segurança)
     user: "1000:1000"
     restart: unless-stopped
 
-    # 2. SEGURANÇA: Removemos 'ports'. O Coolify usa a rede interna.
-    # Expor a porta aqui bypassa o proxy/firewall do Coolify.
-    # Apenas garanta que nas configurações do Coolify a porta 18789 esteja definida.
-    # ports:
-    #   - "18789:18789"
+    # Aguarda o serviço 'init-permissions' terminar com sucesso
+    depends_on:
+      init-permissions:
+        condition: service_completed_successfully
 
-    # 3. SEGURANÇA: Remove capacidades desnecessárias do Kernel Linux
+    # Hardening (Blindagem)
     cap_drop:
       - ALL
-
-    # 4. SEGURANÇA: Sistema de arquivos somente leitura (opcional, mas recomendado)
-    # read_only: true
-    # (Se ativar read_only, precisaria mapear volumes temporários para /tmp)
 
     environment:
       HOME: /home/node
       TERM: xterm-256color
-      # O app escuta em 0.0.0.0 internamente para o Coolify alcançar
       HOST: 0.0.0.0
-      # As variáveis ENV são a forma segura de passar segredos, não o comando.
+      # Suas variáveis
       CLAWDBOT_GATEWAY_TOKEN: ${CLAWDBOT_GATEWAY_TOKEN}
       MOLTBOT_GATEWAY_TOKEN: ${CLAWDBOT_GATEWAY_TOKEN}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
@@ -37,12 +44,9 @@ services:
     volumes:
       - moltbot_data:/home/node/.moltbot
       - moltbot_workspace:/home/node/clawd
-      # Volume temporário necessário se usarmos segurança restrita
       - /tmp
 
-    # 5. TRUQUE DO ALIAS (Versão Segura - Sem Root)
-    # Criamos o binário na pasta do usuário (~/.local/bin ou ~/bin)
-    # e adicionamos ao PATH apenas nesta sessão.
+    # Script de inicialização + Alias
     command: >
       /bin/sh -c "
       mkdir -p /home/node/bin &&
@@ -50,7 +54,7 @@ services:
       echo 'node /app/dist/index.js \"\$@\"' >> /home/node/bin/moltbot &&
       chmod +x /home/node/bin/moltbot &&
       export PATH=\"/home/node/bin:\$PATH\" &&
-      echo '✅ Comando moltbot (seguro) instalado em ~/bin!' &&
+      echo '✅ Moltbot seguro iniciando...' &&
       exec node dist/index.js gateway --bind lan --port 18789 --allow-unconfigured
       "
 
